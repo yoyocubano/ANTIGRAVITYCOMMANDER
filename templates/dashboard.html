@@ -1,0 +1,512 @@
+<!-- templates/dashboard.html -->
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AntiGravity Command Center</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .metric-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #4ecca3;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        .agents-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .agent-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid;
+        }
+
+        .agent-card.idle {
+            border-color: #4ecca3;
+        }
+
+        .agent-card.busy {
+            border-color: #ff9800;
+        }
+
+        .agent-card.error {
+            border-color: #ff5252;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .agent-name {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .agent-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .agent-status.idle {
+            background: #4ecca3;
+            color: #000;
+        }
+
+        .agent-status.busy {
+            background: #ff9800;
+            color: #fff;
+        }
+
+        .agent-status.error {
+            background: #ff5252;
+            color: #fff;
+        }
+
+        .current-task {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .task-description {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecca3, #2ecc71);
+            transition: width 0.3s ease;
+        }
+
+        .activity-log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-item.start {
+            border-color: #2196f3;
+        }
+
+        .log-item.complete {
+            border-color: #4ecca3;
+        }
+
+        .log-item.error {
+            border-color: #ff5252;
+        }
+
+        .log-item.collaboration {
+            border-color: #ff9800;
+        }
+
+        .log-timestamp {
+            font-size: 0.8em;
+            opacity: 0.6;
+        }
+
+        .collaboration-flow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 15px;
+            background: rgba(255, 152, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .collaboration-arrow {
+            font-size: 1.5em;
+            color: #ff9800;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 AntiGravity Command Center</h1>
+            <p>Sistema de Coordinación de Agentes en Tiempo Real</p>
+        </header>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="totalAgents">0</div>
+                <div class="metric-label">Agentes Totales</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="activeAgents">0</div>
+                <div class="metric-label">Agentes Activos</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="tasksInQueue">0</div>
+                <div class="metric-label">Tareas en Cola</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="tasksCompleted">0</div>
+                <div class="metric-label">Tareas Completadas</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="avgDuration">0s</div>
+                <div class="metric-label">Duración Promedio</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="activeCollabs">0</div>
+                <div class="metric-label">Colaboraciones Activas</div>
+            </div>
+        </div>
+
+        <h2>👥 Agentes del Equipo</h2>
+        <div id="agentsGrid" class="agents-section"></div>
+
+        <h2>📋 Log de Actividad en Tiempo Real</h2>
+        <div id="activityLog" class="activity-log"></div>
+
+        <div class="chart-container">
+            <h2>📈 Rendimiento del Sistema</h2>
+            <canvas id="performanceChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        const agents = {};
+        const activityLog = document.getElementById('activityLog');
+
+        // Conectar y recibir estado inicial
+        socket.on('initial_state', (data) => {
+            updateMetrics(data.metrics);
+            Object.entries(data.agents).forEach(([id, agent]) => {
+                updateAgentCard(id, agent);
+            });
+            data.completed_tasks.forEach(task => {
+                addLogEntry('complete', `Tarea completada: ${task.description}`);
+            });
+        });
+
+        // Actualización de agentes
+        socket.on('agent_update', (data) => {
+            updateAgentCard(data.agent_id, data.status);
+        });
+
+        // Nueva tarea
+        socket.on('new_task', (task) => {
+            addLogEntry('start', `Nueva tarea: ${task.description}`);
+            requestMetricsUpdate();
+        });
+
+        // Tarea completada
+        socket.on('task_complete', (task) => {
+            addLogEntry('complete', `✅ ${task.agent_id} completó: ${task.description}`);
+            requestMetricsUpdate();
+        });
+
+        // Colaboración
+        socket.on('collaboration', (collab) => {
+            addCollaborationLog(collab);
+            requestMetricsUpdate();
+        });
+
+        // Actualización de métricas
+        socket.on('metrics_update', (metrics) => {
+            updateMetrics(metrics);
+        });
+
+        function updateAgentCard(agentId, status) {
+            agents[agentId] = status;
+
+            const grid = document.getElementById('agentsGrid');
+            let card = document.getElementById(`agent-${agentId}`);
+
+            if (!card) {
+                card = document.createElement('div');
+                card.id = `agent-${agentId}`;
+                card.className = 'agent-card';
+                grid.appendChild(card);
+            }
+
+            const statusClass = status.status || 'idle';
+            card.className = `agent-card ${statusClass}`;
+
+            card.innerHTML = `
+                <div class="agent-header">
+                    <div class="agent-name">${agentId}</div>
+                    <div class="agent-status ${statusClass}">${statusClass}</div>
+                </div>
+                <div>
+                    <strong>Capacidades:</strong>
+                    <div>${(status.capabilities || []).join(', ')}</div>
+                </div>
+                ${status.current_task ? `
+                    <div class="current-task">
+                        <div class="task-description">
+                            <strong>📌 Tarea Actual:</strong><br>
+                            ${status.current_task.description || 'Sin descripción'}
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${status.current_task.progress || 0}%"></div>
+                        </div>
+                        <div style="text-align: center; margin-top: 5px; font-size: 0.9em;">
+                            ${status.current_task.progress || 0}%
+                        </div>
+                    </div>
+                ` : '<div style="text-align: center; padding: 20px; opacity: 0.6;">💤 Esperando tareas...</div>'}
+                <div style="margin-top: 15px; font-size: 0.8em; opacity: 0.7;">
+                    Última actualización: ${new Date(status.last_update).toLocaleTimeString()}
+                </div>
+            `;
+        }
+
+        function updateMetrics(metrics) {
+            document.getElementById('totalAgents').textContent = metrics.total_agents || 0;
+            document.getElementById('activeAgents').textContent = metrics.active_agents || 0;
+            document.getElementById('tasksInQueue').textContent = metrics.tasks_in_queue || 0;
+            document.getElementById('tasksCompleted').textContent = metrics.tasks_completed || 0;
+            document.getElementById('avgDuration').textContent =
+                `${(metrics.avg_task_duration || 0).toFixed(1)}s`;
+            document.getElementById('activeCollabs').textContent = metrics.active_collaborations || 0;
+        }
+
+        function addLogEntry(type, message) {
+            const item = document.createElement('div');
+            item.className = `log-item ${type}`;
+            item.innerHTML = `
+                <div class="log-timestamp">${new Date().toLocaleTimeString()}</div>
+                <div>${message}</div>
+            `;
+            activityLog.insertBefore(item, activityLog.firstChild);
+
+            // Limitar a 50 entradas
+            while (activityLog.children.length > 50) {
+                activityLog.removeChild(activityLog.lastChild);
+            }
+        }
+
+        function addCollaborationLog(collab) {
+            const item = document.createElement('div');
+            item.className = 'log-item collaboration';
+            item.innerHTML = `
+                <div class="log-timestamp">${new Date().toLocaleTimeString()}</div>
+                <div class="collaboration-flow">
+                    <strong>${collab.from}</strong>
+                    <span class="collaboration-arrow">→</span>
+                    <strong>${collab.to}</strong>
+                </div>
+                <div>🤝 Delegación: ${collab.task.description || collab.task}</div>
+            `;
+            activityLog.insertBefore(item, activityLog.firstChild);
+        }
+
+        function requestMetricsUpdate() {
+            socket.emit('request_metrics');
+        }
+
+        // Gráfico de rendimiento
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        const performanceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Tareas Completadas',
+                    data: [],
+                    borderColor: '#4ecca3',
+                    backgroundColor: 'rgba(78, 204, 163, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Agentes Activos',
+                    data: [],
+                    borderColor: '#ff9800',
+                    backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#fff'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#fff'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#fff'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Actualizar gráfico cada 5 segundos
+        setInterval(() => {
+            const now = new Date().toLocaleTimeString();
+            performanceChart.data.labels.push(now);
+            performanceChart.data.datasets[0].data.push(
+                parseInt(document.getElementById('tasksCompleted').textContent)
+            );
+            performanceChart.data.datasets[1].data.push(
+                parseInt(document.getElementById('activeAgents').textContent)
+            );
+
+            if (performanceChart.data.labels.length > 20) {
+                performanceChart.data.labels.shift();
+                performanceChart.data.datasets.forEach(dataset => dataset.data.shift());
+            }
+
+            performanceChart.update();
+        }, 5000);
+
+        // Solicitar métricas cada 3 segundos
+        setInterval(requestMetricsUpdate, 3000);
+    </script>
+</body>
+
+</html>
