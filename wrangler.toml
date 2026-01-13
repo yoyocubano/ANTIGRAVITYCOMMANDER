@@ -1,17 +1,4 @@
-name = "antigravity-commander"
-main = "dashboard_server.py"
-compatibility_date = "2024-01-14"
-
-[site]
-bucket = "./templates"
-
-[vars]
-ENVIRONMENT = "production"
-
-# Configuración del Túnel (Opcional, si usas Cloudflare Tunnel gestionado localmente)
-# tunnel_id = "..."
-# credentials_file = "..."
-
-[observability]
-enabled = true
-head_sampling_rate = 1
+[build]
+  command = "echo 'No build step needed for raw HTML'"
+  publish = "frontend"
+  project_name = "antigravity-commander"

@@ -1,9 +1,10 @@
+gunicorn==20.1.0
+eventlet==0.33.3
 flask==2.3.3
 flask-socketio==5.3.6
 websockets==11.0.3
 numpy==1.25.2
 python-dotenv==1.0.0
-# Downgrade urllib3 para compatibilidad con LibreSSL en macOS antiguo
 urllib3<2.0.0
 requests==2.31.0
 aiohttp==3.8.5
