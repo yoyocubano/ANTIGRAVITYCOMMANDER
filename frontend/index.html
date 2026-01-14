@@ -300,7 +300,21 @@
     </div>
 
     <script>
-        const socket = io();
+        // Configuración de conexión híbrida (Nube/Local)
+        // Si estamos en localhost, intenta conectar localmente.
+        // Si estamos en Cloudflare Pages, conecta al backend de Render.
+        const PRODUCTION_URL = 'https://antigravitycommander.onrender.com';
+
+        const socketUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:8765'
+            : PRODUCTION_URL;
+
+        console.log(`🔌 Iniciando conexión AntiGravity a: ${socketUrl}`);
+
+        const socket = io(socketUrl, {
+            transports: ['websocket', 'polling'],
+            withCredentials: true
+        });
 
         const agents = {};
         const activityLog = document.getElementById('activityLog');
