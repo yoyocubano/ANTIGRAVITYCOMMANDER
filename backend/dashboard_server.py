@@ -9,11 +9,21 @@ import os
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
-# Standard template folder inside backend (we just copied it there)
+# Standard template folder inside backend
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.urandom(24)
-# Switch to threading mode for stability
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+# Configuración robusta para Render:
+# 1. CORS permisivo (permitir conexiones desde el propio dominio y externos)
+# 2. PermitirPolling (necesario para atravesar proxies de Render)
+socketio = SocketIO(
+    app, 
+    cors_allowed_origins="*", 
+    async_mode='threading',
+    ping_timeout=60, 
+    ping_interval=25,
+    always_connect=True
+)
 
 class DashboardManager:
     def __init__(self):

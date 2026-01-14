@@ -301,8 +301,6 @@
 
     <script>
         // Configuración de conexión híbrida (Nube/Local)
-        // Si estamos en localhost, intenta conectar localmente.
-        // Si estamos en Cloudflare Pages, conecta al backend de Render.
         const PRODUCTION_URL = 'https://antigravitycommander.onrender.com';
 
         const socketUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -311,9 +309,13 @@
 
         console.log(`🔌 Iniciando conexión AntiGravity a: ${socketUrl}`);
 
+        // Render requiere POLLING primero para establecer sesión sticky, luego upgrade a WebSocket
         const socket = io(socketUrl, {
-            transports: ['websocket', 'polling'],
-            withCredentials: true
+            transports: ['polling', 'websocket'], // ¡Importante! Polling primero
+            withCredentials: true,
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000
         });
 
         const agents = {};
