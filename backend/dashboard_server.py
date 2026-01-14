@@ -14,7 +14,7 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
 # Standard template folder inside backend
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__, template_folder='.')
 app.config['SECRET_KEY'] = os.urandom(24)
 
 # Configuración probada para Render + Eventlet
