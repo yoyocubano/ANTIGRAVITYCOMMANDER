@@ -1,6 +1,3 @@
-import eventlet
-eventlet.monkey_patch()
-
 import logging
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
@@ -12,12 +9,11 @@ import os
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
-# Point to the frontend folder for templates if running monolithic, 
-# though we are moving to split architecture.
-template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../frontend'))
-app = Flask(__name__, template_folder=template_dir)
+# Standard template folder inside backend (we just copied it there)
+app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.urandom(24)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+# Switch to threading mode for stability
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 class DashboardManager:
     def __init__(self):

@@ -20,3 +20,5 @@
 2026-01-13T23:49:20Z INF Starting metrics server on 127.0.0.1:20241/metrics
 2026-01-13T23:49:20Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.192.107
 2026-01-13T23:49:21Z INF Registered tunnel connection connIndex=0 connection=f4f2c47e-76f1-4572-a630-eafe32885292 event=0 ip=198.41.192.107 location=lux02 protocol=quic
+2026-01-14T00:25:53Z ERR  error="Unable to reach the origin service. The service may be down or it may not be responding to traffic from cloudflared: dial tcp [::1]:8765: connect: connection refused" connIndex=0 event=1 ingressRule=0 originService=http://localhost:8765
+2026-01-14T00:25:53Z ERR Request failed error="Unable to reach the origin service. The service may be down or it may not be responding to traffic from cloudflared: dial tcp [::1]:8765: connect: connection refused" connIndex=0 dest=https://gene-samuel-diagnosis-scoop.trycloudflare.com/ event=0 ip=198.41.192.107 type=http

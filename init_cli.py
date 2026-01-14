@@ -10,6 +10,8 @@ import random
 import websockets
 from dotenv import load_dotenv
 
+# Ensure we can import from the backend directory
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend'))
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from intelligent_cache import IntelligentCache
