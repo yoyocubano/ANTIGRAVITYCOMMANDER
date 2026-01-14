@@ -1,3 +1,7 @@
+import eventlet
+# MUY IMPORTANTE: Monkey patch debe ser lo PRIMERO absoluto
+eventlet.monkey_patch()
+
 import logging
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
@@ -13,16 +17,13 @@ log.setLevel(logging.ERROR)
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.urandom(24)
 
-# Configuración robusta para Render:
-# 1. CORS permisivo (permitir conexiones desde el propio dominio y externos)
-# 2. PermitirPolling (necesario para atravesar proxies de Render)
+# Configuración probada para Render + Eventlet
 socketio = SocketIO(
     app, 
     cors_allowed_origins="*", 
-    async_mode='threading',
-    ping_timeout=60, 
-    ping_interval=25,
-    always_connect=True
+    async_mode='eventlet',
+    ping_timeout=10, 
+    ping_interval=5
 )
 
 class DashboardManager:

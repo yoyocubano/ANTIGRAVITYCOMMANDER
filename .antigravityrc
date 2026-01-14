@@ -1,13 +1,9 @@
-AGENT_ID="titan-cli-01"
+AGENT_ID="titan-cli-prime-01"
 AGENT_TYPE="command-line"
-AGENT_CAPABILITIES="code_generation,file_operations,api_calls,data_processing,shell_commands,git_operations,package_management,general"
-MAX_CONCURRENT_TASKS=10
-CACHE_DIR=".antigravity-cache"
-CACHE_MAX_SIZE_MB=1024
-MEMORY_DB_PATH="antigravity-memory.db"
-REPORT_ENDPOINT="http://localhost:8765/reports"
-COORDINATION_SERVER="ws://localhost:8766"
+AGENT_CAPABILITIES="code_generation,file_operations,api_calls,data_processing,shell_commands,git_operations,general"
+MAX_CONCURRENT_TASKS=5
+# Conexión a Nube (Render)
+REPORT_ENDPOINT="https://antigravitycommander.onrender.com/reports"
+COORDINATION_SERVER="wss://antigravitycommander.onrender.com"
 ENABLE_REALTIME_REPORTING=true
 AUTO_REQUEST_TASKS=true
-HEARTBEAT_INTERVAL_MS=3000
-IDLE_TIMEOUT_SECONDS=5
